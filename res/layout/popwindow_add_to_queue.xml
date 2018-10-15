@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:paddingLeft="@dimen/activity_horizontal_margin">
+
+    <Button
+        android:id="@+id/action_play_now"
+        android:layout_width="143dp"
+        android:layout_height="wrap_content"
+        android:text="Play Now" />
+
+    <Button
+        android:id="@+id/action_add_to_queue"
+        android:layout_width="143dp"
+        android:layout_height="wrap_content"
+        android:text="Add to Queue" />
+</LinearLayout>

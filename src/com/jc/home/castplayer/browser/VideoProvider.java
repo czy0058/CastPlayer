@@ -24,14 +24,17 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -71,6 +74,7 @@ public class VideoProvider {
     private static final String TAG_TITLE = "title";
 
     public static final String KEY_DESCRIPTION = "description";
+    public static final String VIDEOFILE = "video.json";
 
     private static final String TARGET_FORMAT = TAG_HLS;
     private static List<MediaInfo> mediaList;
@@ -81,14 +85,15 @@ public class VideoProvider {
             java.net.URL url = new java.net.URL(urlString);
             URLConnection urlConnection = url.openConnection();
             is = new BufferedInputStream(urlConnection.getInputStream());
-            BufferedReader reader = new BufferedReader(new InputStreamReader(
-                    urlConnection.getInputStream(), "iso-8859-1"), 1024);
+            //BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "iso-8859-1"), 1024);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8"), 1024);
             StringBuilder sb = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
                 sb.append(line);
             }
-            String json = sb.toString();
+            byte[] byteText =sb.toString().getBytes("UTF-8");
+            String json = new String(byteText);
             return new JSONObject(json);
         } catch (Exception e) {
             Log.e(TAG, "Failed to parse the json for media list", e);
@@ -104,7 +109,7 @@ public class VideoProvider {
         }
     }
 
-    public static List<MediaInfo> buildMedia(String url) throws JSONException {
+    public static List<MediaInfo> buildMedia(String url,Context context) throws JSONException {
 
         if (null != mediaList) {
             return mediaList;
@@ -112,6 +117,15 @@ public class VideoProvider {
         Map<String, String> urlPrefixMap = new HashMap<>();
         mediaList = new ArrayList<>();
         JSONObject jsonObj = new VideoProvider().parseUrl(url);
+        if(null != jsonObj){
+            WriteToFile(jsonObj.toString(),context);
+        }
+        else {
+            String s = ReadFromFile(context);
+            if(s!=""){
+                jsonObj = new JSONObject(s);
+            }
+        }
         JSONArray categories = jsonObj.getJSONArray(TAG_CATEGORIES);
         if (null != categories) {
             for (int i = 0; i < categories.length(); i++) {
@@ -229,5 +243,46 @@ public class VideoProvider {
                 .setSubtype(trackSubType)
                 .setContentId(contentId)
                 .setLanguage(language).build();
+    }
+
+    private static void WriteToFile(String data,Context context){
+        try {
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput(VIDEOFILE, Context.MODE_PRIVATE));
+            outputStreamWriter.write(data);
+            outputStreamWriter.close();
+        }
+        catch (IOException e) {
+            Log.e("Exception", "File write failed: " + e.toString());
+        }
+    }
+
+    private static String ReadFromFile(Context context) {
+
+        String ret = "";
+
+        try {
+            InputStream inputStream = context.openFileInput(VIDEOFILE);
+
+            if ( inputStream != null ) {
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                String receiveString = "";
+                StringBuilder stringBuilder = new StringBuilder();
+
+                while ( (receiveString = bufferedReader.readLine()) != null ) {
+                    stringBuilder.append(receiveString);
+                }
+
+                inputStream.close();
+                ret = stringBuilder.toString();
+            }
+        }
+        catch (FileNotFoundException e) {
+            Log.e("Exception", "File not found: " + e.toString());
+        } catch (IOException e) {
+            Log.e("Exception", "Can not read file: " + e.toString());
+        }
+
+        return ret;
     }
 }

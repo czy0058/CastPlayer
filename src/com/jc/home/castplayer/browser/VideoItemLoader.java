@@ -31,16 +31,18 @@ public class VideoItemLoader extends AsyncTaskLoader<List<MediaInfo>> {
 
     private static final String TAG = "VideoItemLoader";
     private final String mUrl;
+    Context _context;
 
     public VideoItemLoader(Context context, String url) {
         super(context);
         this.mUrl = url;
+        this._context=context;
     }
 
     @Override
     public List<MediaInfo> loadInBackground() {
         try {
-            return VideoProvider.buildMedia(mUrl);
+            return VideoProvider.buildMedia(mUrl,_context);
         } catch (Exception e) {
             Log.e(TAG, "Failed to fetch media data", e);
             return null;

@@ -37,9 +37,11 @@ import android.support.v7.widget.PopupMenu;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Display;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import java.util.List;
@@ -155,6 +157,15 @@ public class Utils {
         return time;
     }
 
+    public static void ShowPopupWindow(final Context context, View view){
+        View root = LayoutInflater.from(context).inflate(R.layout.popwindow_add_to_queue, null);
+        PopupWindow popup = new PopupWindow(root, 500, 600);
+        //以下拉方式显示
+        //popup.showAsDropDown(v);
+        // 将PopupWindow显示在指定位置
+        popup.showAtLocation(view, 200, 100, 100);
+    }
+
     /**
      * Show a popup to select whether the selected item should play immediately, be added to the
      * end of queue or be added to the queue right after the current item.
@@ -172,6 +183,9 @@ public class Utils {
             return;
         }
         final QueueDataProvider provider = QueueDataProvider.getInstance(context);
+
+        ShowPopupWindow(context,view);
+
         PopupMenu popup = new PopupMenu(context, view);
         popup.getMenuInflater().inflate(
                 provider.isQueueDetached() || provider.getCount() == 0
